@@ -9,7 +9,7 @@ import { now } from '../../core/clock';
 import { wordId, type Mistake, type MistakeType } from '../../core/types';
 import { manualSource, type MistakeSource } from '../../mistakes/MistakeSource';
 import { asr } from '../../mistakes/voice/asr';
-import { decodeTo16k, micSupported, startRecording, type Recording } from '../../mistakes/voice/recorder';
+import { decodeTo16k, micBlockedByEmbed, micSupported, startRecording, type Recording } from '../../mistakes/voice/recorder';
 import { AyahMark, Card, SurahTitle } from '../components/common';
 import { LevelMeter, ModelStatus, useModelState } from '../components/Voice';
 import { formatDate, formatDays, go, useQuran, useSettings } from '../hooks';
@@ -192,7 +192,9 @@ export function Recite({ params, source = manualSource }: { params: URLSearchPar
     } catch (e) {
       const err = e as DOMException;
       setVoiceError(
-        err?.name === 'NotAllowedError'
+        micBlockedByEmbed() || window.self !== window.top
+          ? "Cette page est affichée dans un aperçu qui n'a pas le droit d'utiliser le micro. Ouvre l'application elle-même (npm run dev ou la version en ligne), ou importe un fichier audio enregistré avec ton téléphone."
+          : err?.name === 'NotAllowedError'
           ? "Micro refusé. Autorise le micro pour ce site dans le navigateur, ou importe un fichier audio."
           : `Micro indisponible : ${err?.message ?? err}`,
       );
@@ -343,7 +345,7 @@ export function Recite({ params, source = manualSource }: { params: URLSearchPar
           ) : current ? (
             voiceOn ? (
               <>
-                <button className="btn primary" onClick={() => startRec(current.n)} disabled={!micSupported()}>🎤 Réciter l'ayah {current.n}</button>
+                <button className="btn primary" onClick={() => startRec(current.n)} disabled={!micSupported() || micBlockedByEmbed()}>🎤 Réciter l'ayah {current.n}</button>
                 <button className="btn" onClick={peek}>Indice (mot suivant)</button>
                 <button className="btn ghost small" onClick={reveal}>Vérifier sans micro</button>
                 <button className="btn ghost small" onClick={() => fileRef.current?.click()}>Importer un audio…</button>
@@ -367,7 +369,9 @@ export function Recite({ params, source = manualSource }: { params: URLSearchPar
         {!done && voiceOn && (
           <p className="muted small hint">
             Récite l'ayah à voix haute ; les erreurs détectées apparaissent en pointillés. Vérifie-les : touche un mot pour corriger.
-            {!micSupported() && ' Ce navigateur ne permet pas d\'enregistrer : importe un fichier audio.'}
+            {micBlockedByEmbed()
+              ? ' Le micro est bloqué dans cet aperçu : importe un fichier audio (mémo vocal), ou ouvre l\'application elle-même.'
+              : !micSupported() && ' Ce navigateur ne permet pas d\'enregistrer : importe un fichier audio.'}
           </p>
         )}
       </div>

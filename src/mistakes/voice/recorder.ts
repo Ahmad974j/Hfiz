@@ -6,6 +6,20 @@ export function micSupported() {
   return typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== 'undefined';
 }
 
+/**
+ * True when the page is embedded (e.g. a preview frame) without permission to use the microphone:
+ * getUserMedia would fail whatever the user answers.
+ */
+export function micBlockedByEmbed(): boolean {
+  try {
+    const d = document as unknown as { permissionsPolicy?: { allowsFeature(f: string): boolean }; featurePolicy?: { allowsFeature(f: string): boolean } };
+    const fp = d.permissionsPolicy ?? d.featurePolicy;
+    return !!fp && !fp.allowsFeature('microphone');
+  } catch {
+    return false;
+  }
+}
+
 export interface Recording {
   stop(): Promise<Blob>;
   cancel(): void;
