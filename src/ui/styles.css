@@ -202,3 +202,20 @@ legend { font-weight: 700; font-size: 0.85rem; color: var(--muted); padding-righ
 .row { flex-wrap: wrap; row-gap: 4px; }
 .surah-title { flex-shrink: 0; }
 .badge { white-space: normal; }
+
+/* ---- voice recitation ---- */
+.word.proposed { outline: 2px dashed currentColor; outline-offset: 2px; }
+.ayah.recording { box-shadow: inset 3px 0 0 var(--weak); }
+.heard { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; margin: 0.3rem 0; }
+.heard .ar { font-family: var(--ar); font-size: 1.15rem; }
+.heard audio { height: 32px; max-width: 100%; }
+.voice-ok { color: var(--mastered); }
+.voice-err { color: var(--weak); }
+.model-progress { display: inline-flex; flex-direction: column; gap: 0.2rem; }
+.model-progress progress { width: 100%; max-width: 260px; accent-color: var(--accent); }
+.rec-indicator { display: inline-flex; align-items: center; gap: 0.4rem; font-variant-numeric: tabular-nums; }
+.rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--weak); animation: rec-pulse 1s ease-in-out infinite; }
+@keyframes rec-pulse { 50% { opacity: 0.3; } }
+.meter { display: inline-block; width: 70px; height: 6px; border-radius: 3px; background: var(--hidden); overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--accent); transition: width 80ms linear; }
+.heard { font-family: inherit; } .mushaf .heard { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
