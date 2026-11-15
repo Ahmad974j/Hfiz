@@ -1,8 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_CONFIG, type Config } from '../../core/config';
 import { DAY_MS } from '../../core/clock';
 import { exportData, importData, resetAll, saveSettings } from '../../data/actions';
 import { Card } from '../components/common';
+import { ModelStatus, useModelState } from '../components/Voice';
+import { asr, isModelCached } from '../../mistakes/voice/asr';
 import { formatDate, useNow, useQuran, useSettings } from '../hooks';
 
 type Path = string;
@@ -32,6 +34,11 @@ export function Settings() {
   const nowMs = useNow();
   const fileRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const modelState = useModelState();
+  const [cached, setCached] = useState<boolean | null>(null);
+  useEffect(() => {
+    isModelCached(cfg.voice.model).then(setCached);
+  }, [cfg.voice.model, modelState.status]);
 
   const update = (p: Path, v: unknown) => saveSettings({ config: set(settings.config, p, v) });
 
@@ -92,6 +99,36 @@ export function Settings() {
           </fieldset>
         ))}
         <button className="btn small" onClick={() => saveSettings({ config: { sectionMode: cfg.sectionMode, sectionSize: cfg.sectionSize } as Partial<Config> })}>Rétablir les valeurs par défaut</button>
+      </Card>
+
+      <Card>
+        <h2>Récitation vocale</h2>
+        <p className="small">
+          La voix est transcrite <b>sur cet appareil</b> par le modèle open source de Tarteel (<i>whisper-base-ar-quran</i>), puis comparée au texte.
+          Aucun enregistrement n'est envoyé. Le modèle (~105 Mo) est téléchargé une seule fois depuis Hugging Face, puis gardé dans le cache du navigateur.
+        </p>
+        <div className="actions wrap">
+          <button className="btn" disabled={modelState.status === 'loading' || modelState.status === 'ready'} onClick={() => asr.load(cfg.voice.model).catch(() => {})}>
+            {cached ? 'Charger le modèle' : 'Télécharger le modèle'}
+          </button>
+          <ModelStatus state={modelState} />
+          {cached && modelState.status === 'idle' && <span className="muted small">déjà dans le cache</span>}
+        </div>
+        <label className="form-row">
+          <span>Tolérance (mot reconnu si similarité ≥){cfg.voice.accept !== DEFAULT_CONFIG.voice.accept && <span className="muted small"> (défaut {DEFAULT_CONFIG.voice.accept})</span>}</span>
+          <input type="number" step={0.05} min={0.5} max={1} value={cfg.voice.accept} onChange={(e) => e.target.value !== '' && update('voice.accept', Number(e.target.value))} />
+        </label>
+        <details>
+          <summary className="small">Avancé : modèle utilisé</summary>
+          <label className="form-row">
+            <span className="small">Identifiant Hugging Face (export ONNX pour transformers.js)</span>
+            <input type="text" dir="ltr" value={cfg.voice.model} onChange={(e) => e.target.value.trim() && update('voice.model', e.target.value.trim())} />
+          </label>
+          <p className="muted small">
+            Par défaut : <code>{DEFAULT_CONFIG.voice.model}</code>, conversion du modèle <a href="https://huggingface.co/tarteel-ai/whisper-base-ar-quran" target="_blank" rel="noreferrer">tarteel-ai/whisper-base-ar-quran</a> (licence Apache 2.0).
+          </p>
+        </details>
+        <p className="muted small">La détection n'est pas parfaite (environ 1 mot sur 7 mal reconnu) : les erreurs proposées sont à vérifier avant de terminer.</p>
       </Card>
 
       <Card>

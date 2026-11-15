@@ -55,6 +55,14 @@ export const DEFAULT_CONFIG = {
   /** "ayat" = fixed number of ayat; "page" = one Madani mushaf page. */
   sectionMode: 'ayat' as 'ayat' | 'page',
 
+  /** Voice recitation (speech recognition on the device). */
+  voice: {
+    /** Hugging Face id of an ONNX export of tarteel-ai/whisper-base-ar-quran (transformers.js). */
+    model: 'nael239/tasme3-whisper-base-ar-quran-web',
+    /** Similarity (0..1) at or above which a heard word counts as correct. */
+    accept: 0.75,
+  },
+
   /** Time estimates for the daily budget (minutes). */
   minutesPerAyah: 0.5,
   minutesPerWord: 0.5,

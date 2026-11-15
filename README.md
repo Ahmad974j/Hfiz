@@ -12,6 +12,11 @@ npm test           # tests Vitest (logique + IndexedDB)
 npm run build      # build statique dans dist/
 ```
 
+## En ligne
+
+Chaque push sur `main` déploie l'application sur GitHub Pages (`.github/workflows/deploy.yml`) :
+<https://ahmad974j.github.io/Hfiz/>. À activer une fois dans le dépôt : Settings > Pages > Source : « GitHub Actions ».
+
 ## Texte coranique
 
 - Source : **Tanzil Project**, texte Uthmani (`data/source/quran-uthmani.txt`, copie verbatim avec sa notice).
@@ -37,7 +42,10 @@ src/core/        logique pure + tests (aucune dépendance au navigateur)
   sections.ts    découpage (n ayat ou une page du mushaf)
   clock.ts       horloge avec décalage « simuler des jours »
 src/data/        Dexie (IndexedDB), chargement du texte, actions, export/import JSON
-src/mistakes/    interface MistakeSource (saisie manuelle ; la voix viendra plus tard)
+  arabic.ts      normalisation de l'arabe (Uthmani vs écriture courante), similarité de mots
+  align.ts       alignement « entendu » / texte d'une ayah -> erreurs proposées
+src/mistakes/    interface MistakeSource (saisie manuelle)
+  voice/         récitation vocale : micro, worker de transcription (transformers.js)
 src/ui/          écrans : Aujourd'hui, Récitation, Mots faibles, Vue d'ensemble, Sourates, Réglages
 ```
 
@@ -55,3 +63,20 @@ src/ui/          écrans : Aujourd'hui, Récitation, Mots faibles, Vue d'ensembl
   Correct pendant une récitation de section → D−0,5 seulement. Une ayah sautée est suivie au niveau de l'ayah, sans carte de mot.
 - **Indice** pendant la récitation = révèle le mot suivant et compte comme hésitation.
 - Un seul profil par appareil.
+
+## Récitation vocale
+
+- Case « 🎤 Récitation vocale » sur l'écran de récitation. On récite ayah par ayah (« Ayah suivante » enchaîne
+  sans couper), la transcription tourne en arrière-plan pendant qu'on continue.
+- Modèle : [tarteel-ai/whisper-base-ar-quran](https://huggingface.co/tarteel-ai/whisper-base-ar-quran) (Apache 2.0),
+  export ONNX 8 bits `nael239/tasme3-whisper-base-ar-quran-web` (~105 Mo, modifiable dans Réglages), exécuté
+  **dans le navigateur** (WASM, dans un Web Worker). Rien n'est envoyé à un serveur ; le modèle est téléchargé
+  une fois depuis Hugging Face et le runtime ONNX depuis jsDelivr, puis gardés en cache.
+- Comparaison (`src/core/align.ts`) : texte normalisé (sans harakat, alef/ya/hamza/ta marbuta unifiés), puis
+  comparaison sur le « squelette » sans voyelles longues pour absorber les différences d'orthographe Uthmani.
+  Alignement mot à mot par distance d'édition (un mot Uthmani peut correspondre à deux mots entendus).
+  - mot différent -> « Mauvais mot » ; mot absent -> « Mot sauté » ; mot répété -> « Hésitation » ;
+    moins de 25 % de l'ayah reconnue -> « Ayah sautée / bloqué » ; basmala / mots en trop ignorés.
+  - Les harakat ne sont pas vérifiées (le modèle ne les transcrit pas de façon fiable).
+- Les erreurs proposées s'affichent en pointillés : l'élève (ou l'enseignant) confirme ou corrige en touchant le mot.
+  L'enregistrement de chaque ayah peut être réécouté. On peut aussi importer un fichier audio.
