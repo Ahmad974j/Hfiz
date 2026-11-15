@@ -12,6 +12,11 @@ npm test           # tests Vitest (logique + IndexedDB)
 npm run build      # build statique dans dist/
 ```
 
+## En ligne
+
+Chaque push sur `main` déploie l'application sur GitHub Pages (`.github/workflows/deploy.yml`) :
+<https://ahmad974j.github.io/hfiz/>. À activer une fois dans le dépôt : Settings > Pages > Source : « GitHub Actions ».
+
 ## Texte coranique
 
 - Source : **Tanzil Project**, texte Uthmani (`data/source/quran-uthmani.txt`, copie verbatim avec sa notice).
