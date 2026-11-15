@@ -15,7 +15,7 @@ npm run build      # build statique dans dist/
 ## En ligne
 
 Chaque push sur `main` déploie l'application sur GitHub Pages (`.github/workflows/deploy.yml`) :
-<https://ahmad974j.github.io/hfiz/>. À activer une fois dans le dépôt : Settings > Pages > Source : « GitHub Actions ».
+<https://ahmad974j.github.io/Hfiz/>. À activer une fois dans le dépôt : Settings > Pages > Source : « GitHub Actions ».
 
 ## Texte coranique
 
